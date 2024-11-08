@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Your Reaction Time</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 20px;
+            background: linear-gradient(180deg, #080808, #000000);
+            color: #ffffff;
+        }
+        h1 {
+            font-size: 1.5em;
+        }
+        p {
+            font-size: 1em;
+            margin: 10px 0;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 60px); /* 4x4 grid */
+            grid-gap: 8px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .bubble {
+            width: 60px;
+            height: 60px;
+            background-color: #8B0000;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+            cursor: pointer;
+        }
+        .bubble.active {
+            background-color: #ffffff;
+        }
+        #reaction-time, #timer {
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button {
+            font-size: 14px;
+            padding: 8px 16px;
+            margin-top: 15px;
+            background-color: #000000;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #333333;
+        }
+
+        /* Responsive styling for smaller screens */
+        @media (max-width: 600px) {
+            .grid {
+                grid-template-columns: repeat(4, 50px); /* Adjust for smaller screens */
+            }
+            .bubble {
+                width: 50px;
+                height: 50px;
+            }
+            h1 {
+                font-size: 1.2em;
+            }
+            #reaction-time, #timer {
+                font-size: 14px;
+            }
+            button {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Test Your Reaction Time</h1>
+    <p>Click on the white bubble as fast as you can!</p>
+    <div id="timer">Time Left: 40 s</div>
+    <div id="reaction-time">Reaction Time: -- ms</div>
+    <button onclick="startGame()">Start Game</button>
+
+    <div class="grid" id="bubble-grid">
+        <!-- Bubbles will be created here dynamically -->
+    </div>
+
+    <script>
+        const bubbleCount = 16; // Set bubble count to 16 for a 4x4 grid
+        let startTime = 0;
+        let activeBubbleIndex = -1;
+        let gameStarted = false;
+        const reactionTimes = [];
+        let countdownTimer;
+        const gameDuration = 40; // 40 seconds
+        let timeLeft = gameDuration;
+
+        // Initialize bubbles
+        function createBubbles() {
+            const grid = document.getElementById('bubble-grid');
+            grid.innerHTML = ''; // Clear existing bubbles
+
+            for (let i = 0; i < bubbleCount; i++) {
+                const bubble = document.createElement('div');
+                bubble.classList.add('bubble');
+                bubble.addEventListener('click', () => handleBubbleClick(i));
+                grid.appendChild(bubble);
+            }
+        }
+
+        // Start game and reset for a new set of trials
+        function startGame() {
+            if (gameStarted) return; // Prevent restarting if game is in progress
+
+            reactionTimes.length = 0; // Clear previous reaction times
+            timeLeft = gameDuration;
+            gameStarted = true;
+            document.getElementById('reaction-time').innerText = 'Reaction Time: -- ms';
+            document.getElementById('timer').innerText = `Time Left: ${timeLeft} s`;
+
+            activateRandomBubble();
+            countdownTimer = setInterval(updateTimer, 1000); // Start countdown
+        }
+
+        // Update the countdown timer
+        function updateTimer() {
+            if (timeLeft > 0) {
+                timeLeft--;
+                document.getElementById('timer').innerText = `Time Left: ${timeLeft} s`;
+            } else {
+                endGame(); // End game when time is up
+            }
+        }
+
+        // Activate a random bubble
+        function activateRandomBubble() {
+            const bubbles = document.querySelectorAll('.bubble');
+            if (activeBubbleIndex !== -1) {
+                bubbles[activeBubbleIndex].classList.remove('active'); // Deactivate previous bubble
+            }
+            
+            // Choose a random bubble to activate
+            activeBubbleIndex = Math.floor(Math.random() * bubbleCount);
+            bubbles[activeBubbleIndex].classList.add('active');
+            startTime = Date.now(); // Record the time when bubble becomes active
+        }
+
+        // Handle bubble click
+        function handleBubbleClick(index) {
+            if (!gameStarted) return; // Ignore clicks if game hasn't started
+
+            if (index === activeBubbleIndex) { // Only count if the active bubble is clicked
+                const reactionTime = Date.now() - startTime;
+                reactionTimes.push(reactionTime); // Store reaction time
+                
+                document.getElementById('reaction-time').innerText = `Reaction Time: ${reactionTime} ms`;
+                activateRandomBubble(); // Activate a new bubble
+            } else {
+                alert("Click on the white bubble!");
+            }
+        }
+
+        // End game and display average reaction time
+        function endGame() {
+            clearInterval(countdownTimer); // Stop countdown
+            gameStarted = false;
+
+            const totalReactionTime = reactionTimes.reduce((sum, time) => sum + time, 0);
+            const avgReactionTime = (totalReactionTime / reactionTimes.length) / 1000; // Convert to seconds
+            alert(`Game over! Average Reaction Time: ${avgReactionTime.toFixed(2)} seconds`);
+
+            document.getElementById('reaction-time').innerText = `Average Reaction Time: ${avgReactionTime.toFixed(2)} s`;
+        }
+
+        // Create the bubbles when the page loads
+        window.onload = createBubbles;
+    </script>
+
+</body>
+</html>
